@@ -23,4 +23,4 @@
 ## お問い合わせ
 
 本アプリについてのお問い合わせは、次のページからお寄せください。
-https://github.com/Toshiki17/Nakabisha/issues
+https://github.com/Toshiki17/NakabishaDOJO/issues

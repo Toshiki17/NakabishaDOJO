@@ -14,8 +14,8 @@ App Store Connect の各欄にそのまま貼り付けられるように用意�
 | カテゴリ | 教育（セカンダリ：ゲーム → ボード） |
 | 価格 | 無料 |
 | 著作権 | 2026 としき |
-| プライバシーポリシーURL | https://github.com/Toshiki17/Nakabisha/blob/main/docs/privacy.md |
-| サポートURL | https://github.com/Toshiki17/Nakabisha/issues |
+| プライバシーポリシーURL | https://github.com/Toshiki17/NakabishaDOJO/blob/main/docs/privacy.md |
+| サポートURL | https://github.com/Toshiki17/NakabishaDOJO/issues |
 
 ## プロモーションテキスト（170文字以内）
 
