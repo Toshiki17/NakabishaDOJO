@@ -6,8 +6,8 @@
 
 | 場所 | 内容 |
 | --- | --- |
-| `web/nakabisha_sp.html` | 元のスマホ版HTML（アプリの中身。直すのはこのファイル） |
-| `web/nakabisha.html` | 元のPC版HTML（アプリには入れていません） |
+| `web/nakabisha.html` | 元のHTML（アプリの中身。直すのはこのファイル。PCのブラウザでもそのまま動きます） |
+| `tests/` | 自動テスト（`npm test`） |
 | `ios/` | iOSアプリ（SwiftUI + WKWebView）。`ios/www/` は下のスクリプトで作る同梱用ファイル |
 | `appstore/` | App Store に載せる文面（`metadata.md`）とスクリーンショット |
 | `docs/privacy.md` | プライバシーポリシー |
@@ -19,6 +19,12 @@ HTMLを直したら、次を実行して `ios/www/` を作り直し、コミッ�
 
 ```sh
 python3 scripts/build_web.py
+```
+
+テストは次で実行します（初回だけ `npm install` が必要です）。定跡データの打ち間違い・ルール判定・画面操作を確かめます。
+
+```sh
+npm test
 ```
 
 ## App Store に公開する手順
