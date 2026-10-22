@@ -13,6 +13,8 @@
 | `docs/privacy.md` | プライバシーポリシー |
 | `.github/workflows/ios.yml` | Mac上でのビルド確認と、App Store Connect へのアップロード |
 
+ブラウザ版は https://toshiki17.github.io/NakabishaDOJO/ で使えます（`main` に入ると `.github/workflows/pages.yml` が `ios/www/` を自動で公開します）。
+
 アプリはHTMLを端末内から読み込むだけなので、オフラインで動きます。クリア記録と腕試しの成績はアプリ内に保存されます。
 
 HTMLを直したら、次を実行して `ios/www/` を作り直し、コミットします。
