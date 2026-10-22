@@ -34,6 +34,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `data.test.js`：定跡・EV・AUTO・OPPDEV のすべての手と読み筋が合法か（成り・不成の条件も）。`rules.test.js`：盤面ルールとエンジン。`ui.test.js`：タップ操作・最後まで進める・腕試し・KIF読み込み。
 - ページの関数・変数（`LINES`、`S`、`legality` など）は `page.evaluate` から直接呼べる。
 - CI は `.github/workflows/test.yml`（Ubuntu）。
+- `main` への push で `.github/workflows/pages.yml` が `ios/www/` を GitHub Pages（https://toshiki17.github.io/NakabishaDOJO/）に公開する。誰でも見られる公開ページ。
 
 ## iOS アプリ（`ios/`）
 
