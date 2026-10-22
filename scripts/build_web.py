@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""web/nakabisha_sp.html から、iOSアプリに同梱する ios/www/ を作る。
+"""web/nakabisha.html から、iOSアプリに同梱する ios/www/ を作る。
 
-  python3 scripts/build_web.py
+  python3 scripts/build_web.py          # 作り直す
+  python3 scripts/build_web.py --check  # ios/www/index.html が最新か確かめるだけ（テストで使う）
 
 やること
   1. doctype・viewport・[hidden] の非表示など、Artifact の外で開くときに必要な <head> とスタイルを補う
@@ -15,7 +16,7 @@ import sys
 import urllib.request
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SRC = os.path.join(ROOT, "web", "nakabisha_sp.html")
+SRC = os.path.join(ROOT, "web", "nakabisha.html")
 OUT = os.path.join(ROOT, "ios", "www")
 FONTS_URL = ("https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@600;800"
              "&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap")
@@ -81,11 +82,7 @@ def build_fonts(html):
     print(f"fonts: {len(keep)} files")
 
 
-def main():
-    with open(SRC, encoding="utf-8") as f:
-        html = f.read()
-
-    html = replace_once(html, "<title>中飛車道場 スマホ版</title>", "<title>中飛車道場</title>")
+def transform(html):
     html = re.sub(r'<link rel="preconnect" href="https://fonts\.googleapis\.com">\n?', "", html)
     html = re.sub(r'<link rel="stylesheet" href="https://fonts\.googleapis\.com/[^"]*">',
                   '<link rel="stylesheet" href="fonts.css">', html)
@@ -93,10 +90,23 @@ def main():
         sys.exit("Google Fonts の参照が残っています")
     html = replace_once(html, ' id="kifFile" accept=".kif,.kifu,.txt,text/plain"', ' id="kifFile"')
     html = replace_once(html, "記録はこの端末のブラウザにだけ保存されます。", "記録はこの端末にだけ保存されます。")
-    html = HEAD + html
+    return HEAD + html
+
+
+def main():
+    with open(SRC, encoding="utf-8") as f:
+        html = transform(f.read())
+    out = os.path.join(OUT, "index.html")
+
+    if "--check" in sys.argv[1:]:
+        with open(out, encoding="utf-8") as f:
+            if f.read() != html:
+                sys.exit("ios/www/index.html が古いままです。python3 scripts/build_web.py を実行してください")
+        print("ios/www/index.html is up to date")
+        return
 
     os.makedirs(OUT, exist_ok=True)
-    with open(os.path.join(OUT, "index.html"), "w", encoding="utf-8") as f:
+    with open(out, "w", encoding="utf-8") as f:
         f.write(html)
     build_fonts(html)
     print("wrote", os.path.relpath(OUT, ROOT))
