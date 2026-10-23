@@ -8,3 +8,8 @@ test('ios/www/index.html が web/nakabisha.html から作り直してある', ()
   const r = spawnSync('python3', [path.join(__dirname, '../scripts/build_web.py'), '--check'], { encoding: 'utf8' });
   assert.strictEqual(r.status, 0, r.stderr || r.stdout);
 });
+
+test('web/nakabisha.html の定跡データが joseki/ の KIF から作り直してある', () => {
+  const r = spawnSync('python3', [path.join(__dirname, '../scripts/kif_to_joseki.py'), '--check'], { encoding: 'utf8' });
+  assert.strictEqual(r.status, 0, r.stderr || r.stdout);
+});
