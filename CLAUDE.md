@@ -12,7 +12,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 2. `python3 scripts/build_web.py` で `ios/www/`（`index.html`・`fonts.css`・`fonts/`）を作り直す。`ios/www/` は生成物なので手で直さない。生成物もコミットする（アプリはこれを同梱する）。
 3. `npm test` で確かめる（初回は `npm install`）。
 
-- `build_web.py` は元HTMLの特定の文字列（`<title>`、`#kifFile` の `accept` 属性、「ブラウザに保存」の文言など）を `replace_once` で置換する。元HTMLのそれらを変えるとスクリプトが止まるので、スクリプト側も合わせて直す。
+- `build_web.py` は元HTMLの特定の文字列（`#kifFile` の `accept` 属性、「ブラウザにだけ保存」の文言）を `replace_once` で置換する。元HTMLのそれらを変えるとスクリプトが止まるので、スクリプト側も合わせて直す。
 - フォントは Google Fonts から、ページで使う文字を含むサブセットだけをダウンロードする（ネット接続が必要）。新しい文字を使ったらビルドし直さないと、アプリでその字だけ書体が変わる。
 
 ## `web/nakabisha.html` の構造
@@ -34,7 +34,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `data.test.js`：定跡・EV・AUTO・OPPDEV のすべての手と読み筋が合法か（成り・不成の条件も）。`rules.test.js`：盤面ルールとエンジン。`ui.test.js`：タップ操作・最後まで進める・腕試し・KIF読み込み。
 - ページの関数・変数（`LINES`、`S`、`legality` など）は `page.evaluate` から直接呼べる。
 - CI は `.github/workflows/test.yml`（Ubuntu）。
-- `main` への push で `.github/workflows/pages.yml` が `ios/www/` を GitHub Pages（https://toshiki17.github.io/NakabishaDOJO/）に公開する。誰でも見られる公開ページ。
 
 ## iOS アプリ（`ios/`）
 
@@ -42,7 +41,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `DojoWebView.swift`：同梱ページを `app://local/index.html` という独自スキームで配信（`BundleSchemeHandler`）。`file://` より localStorage が確実に残るため。外部URLは Safari で開き、`alert`/`confirm` はネイティブのダイアログで出す。
 - Bundle ID は `io.github.toshiki17.nakabishadojo`。
 
-## CI（`.github/workflows/ios.yml`）
+## CI・公開（`.github/workflows/`）
+
+- `pages.yml`：`main` への push で `ios/www/` を GitHub Pages（https://toshiki17.github.io/NakabishaDOJO/）に公開する。誰でも見られる公開ページなので、`main` に入れる＝公開になる。
+
+`ios.yml`：
 
 - すべての push / PR で、macOS 上でシミュレータ向けビルド（署名なし）。この環境（Linux）では Swift のビルド確認はできないので、CI の結果で確かめる。
 - 手動実行（workflow_dispatch）で、アーカイブして App Store Connect（TestFlight）へアップロード。Secrets `ASC_KEY_ID`・`ASC_ISSUER_ID`・`ASC_KEY_P8`・`APPLE_TEAM_ID` が必要。ストアへ出る操作なので、実行前に必ず確認を取る。
@@ -50,11 +53,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## 画像の書き出し（Playwright）
 
 ```sh
-NODE_PATH=$(npm root -g) node scripts/render_assets.js       # design/icon.html → AppIcon.png
-NODE_PATH=$(npm root -g) node scripts/render_screenshots.js  # ios/www/index.html → appstore/screenshots/
+node scripts/render_assets.js       # design/icon.html → AppIcon.png
+node scripts/render_screenshots.js  # ios/www/index.html → appstore/screenshots/
 ```
 
 スクリーンショットは画面の要素（`#toolbar [data-act=...]`、`[data-mode="test"]`、`#msg .choice` など）を操作して撮るので、UIを変えたらスクリプトも合わせる。
+
+## ShogiGUI の KIF（定跡の打ち込み元）
+
+定跡はユーザーが ShogiGUI で打ち込んだ KIF から取り込む予定（変換スクリプトは未作成）。実際の書き出しで確認した形式：
+
+- 文字コードは Shift-JIS（CP932）。`iconv -f CP932 -t UTF-8` で読む。
+- 分岐は本線のあとに `変化：N手` の区切りで続く。アプリの `parseKif` は `変化` で読むのをやめるので、分岐は読めない。
+- `*` で始まる行はその直前の手へのコメント。`*分岐:` は分岐名。`*一致率 …` は ShogiGUI が自動で付ける行なので解説ではない。
+- `**解析 0 …` は棋譜解析の結果（評価値・読み筋）で、その直前の手を指したあとの局面のもの。棋譜の先頭の `**解析` は初期局面のもの。`○` が付くと実戦の手がエンジンの最善手と一致。
 
 ## その他
 
