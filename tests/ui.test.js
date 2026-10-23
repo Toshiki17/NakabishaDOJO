@@ -63,6 +63,33 @@ test('「答え」と分岐の選択だけで、定跡を最後まで進めて�
   assert.strictEqual(rec.sente.cleared.length, 1);
 });
 
+test('KIFから作ったコース（中飛車の基本形）を選んで、すべての分岐を最後まで進められる', async () => {
+  const { page } = app;
+  const li = await page.evaluate(() => LINES.findIndex(l => l.id === 'kihon'));
+  assert.ok(li >= 0, 'コースがありません');
+  const leaves = await page.evaluate(li => LINES[li].leaves, li);
+  assert.ok(leaves >= 10, `変化が少なすぎます（${leaves}）`);
+  // 分岐ではまだクリアしていない変化を選び、すべての変化をクリアする
+  for (let round = 0; round < leaves; round++) {
+    await page.evaluate(li => selectLine(li), li);
+    const atEnd = () => page.evaluate(() => !S.lock && !cur().kids.length);
+    for (let i = 0; i < 200 && !(await atEnd()); i++) {
+      await idle();
+      const kid = await page.evaluate(li => {
+        const done = recOf(LINES[li].id).cleared;
+        const ks = cur().kids;
+        if (ks.length < 2 || isUserTurn()) return -1;
+        const j = ks.findIndex(k => leavesUnder(k).some(x => !done.includes(x)));
+        return j < 0 ? 0 : j;
+      }, li);
+      if (kid >= 0 && await page.locator(`#msg [data-kid="${kid}"]`).count()) await page.click(`#msg [data-kid="${kid}"]`);
+      else if (await page.evaluate(() => isUserTurn() && cur().kids.length)) await page.click('#toolbar [data-act="answer"]');
+    }
+  }
+  const cleared = await page.evaluate(li => recOf(LINES[li].id).cleared.length, li);
+  assert.strictEqual(cleared, leaves);
+});
+
 // 腕試しを始めて、自分の手を1手指し、相手が応じるまで進める
 async function startTestAndPlay(page) {
   await page.click('[data-mode="test"]');

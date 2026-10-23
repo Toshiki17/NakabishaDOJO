@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 編集の流れ
 
-1. アプリの中身は `web/nakabisha.html` の1ファイルだけ。直すのはここ（以前あった PC 版・スマホ版の2本立ては廃止し、スマホ版に統一した）。
+1. アプリの中身は `web/nakabisha.html` の1ファイルだけ。直すのはここ（以前あった PC 版・スマホ版の2本立ては廃止し、スマホ版に統一した）。ただし KIF から作るコースは `joseki/` を直して `python3 scripts/kif_to_joseki.py` で生成する（下の「KIF から作るコース」）。
 2. `python3 scripts/build_web.py` で `ios/www/`（`index.html`・`fonts.css`・`fonts/`）を作り直す。`ios/www/` は生成物なので手で直さない。生成物もコミットする（アプリはこれを同梱する）。
 3. `npm test` で確かめる（初回は `npm install`）。
 
@@ -59,14 +59,17 @@ node scripts/render_screenshots.js  # ios/www/index.html → appstore/screenshot
 
 スクリーンショットは画面の要素（`#toolbar [data-act=...]`、`[data-mode="test"]`、`#msg .choice` など）を操作して撮るので、UIを変えたらスクリプトも合わせる。
 
-## ShogiGUI の KIF（定跡の打ち込み元）
+## KIF から作るコース（`joseki/`）
 
-定跡はユーザーが ShogiGUI で打ち込んだ KIF から取り込む予定（変換スクリプトは未作成）。実際の書き出しで確認した形式：
+ユーザーが ShogiGUI で打ち込み・棋譜解析した KIF を、`scripts/kif_to_joseki.py` がコースと評価値に変換し、`web/nakabisha.html` の `/*KIF_JOSEKI_BEGIN…*/`〜`/*KIF_JOSEKI_END*/` に書き込む（手で直さない。`build.test.js` が `--check` で作り直し忘れを検出）。
 
-- 文字コードは Shift-JIS（CP932）。`iconv -f CP932 -t UTF-8` で読む。
-- 分岐は本線のあとに `変化：N手` の区切りで続く。アプリの `parseKif` は `変化` で読むのをやめるので、分岐は読めない。
-- `*` で始まる行はその直前の手へのコメント。`*分岐:` は分岐名。`*一致率 …` は ShogiGUI が自動で付ける行なので解説ではない。
-- `**解析 0 …` は棋譜解析の結果（評価値・読み筋）で、その直前の手を指したあとの局面のもの。棋譜の先頭の `**解析` は初期局面のもの。`○` が付くと実戦の手がエンジンの最善手と一致。
+- `joseki/courses.json` にコース（`file`・`id`・`title`・`sub`・`side`）を並べる。`id` は記録（localStorage）のキーになるので変えない。
+- KIF は ShogiGUI で開き直せるよう、ShogiGUI が書き出したまま Shift-JIS（CP932）・CRLF で置く。読むときは `iconv -f CP932 -t UTF-8`。
+- 分岐は本線のあとに `変化：N手` で続く（N手目を含む直前の手順から分かれる）。分岐は相手の手で作る。自分の手の分岐は「有力な手」（`ok`）になり、その先は使われない。
+- コメント（`*` の行）はその直前の手のもの：ふつうの文＝`c`（意味）、`ヒント:`＝`h`、`悪手 ▲7六歩:理由`＝`w`、`有力 ▲2二角成:理由`＝`ok`、`分岐:`＝分岐名。初手より前のコメントはコースの説明（`intro`）。`*一致率` は ShogiGUI が付ける行で無視する。駒が2枚以上当てはまる手は `▲7六飛(56)` のように元の位置を書く。
+- `**解析` の行（棋譜解析）は直前の手を指したあとの局面の評価値・読み筋。ShogiGUI は先手から見た値で書くので、EV（手番から見た値）に変換する。同じ局面を何度か解析していれば最後の解析を使う。評価値の `↑↓` は外し、`+詰 N` は ±(30000−N)。
+- 生成したコースは `kif:true` を持ち、`EXT`・`BR` の接ぎ木はしない（KIF の手順だけになる）。先手・後手の腕試しには混ざる。
+- 時間 0 秒・ノード数 0 の解析は、エンジンの定跡ファイル（BookFile）の値。BookFile を no_book にして解析し直すとそろう。
 
 ## その他
 

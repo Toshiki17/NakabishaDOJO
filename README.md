@@ -23,6 +23,12 @@ HTMLを直したら、次を実行して `ios/www/` を作り直し、コミッ�
 python3 scripts/build_web.py
 ```
 
+ShogiGUI で作った定跡（KIF）からコースを作るときは、KIF を `joseki/` に置いて `joseki/courses.json` に登録し、次を実行してから上の `build_web.py` を実行します。
+
+```sh
+python3 scripts/kif_to_joseki.py
+```
+
 テストは次で実行します（初回だけ `npm install` が必要です）。定跡データの打ち間違い・ルール判定・画面操作を確かめます。
 
 ```sh
